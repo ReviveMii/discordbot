@@ -56,7 +56,7 @@ async def about(ctx):
 
 @bot.command(help="!website : Shows the Website of the Developer.")
 async def website(ctx):
-    await ctx.send('Homepage: https://theerrorexe.github.io\nTools: https://theerrorexe-tools.github.io')
+    await ctx.send('ReviveMii: https://revivemii.fr.to\nTheErrorExe-Homepage: https://theerrorexe.github.io\nTools: https://theerrorexe-tools.github.io')
 
 @bot.command(help="!ping : Ping Pong!")
 async def ping(ctx):
@@ -66,8 +66,7 @@ async def ping(ctx):
 async def status(ctx):
     # Initial status message
     status_msg = await ctx.send(
-        "Website (HTTPS): Checking...\n"
-        "Website (HTTP): Checking...\n"
+        "Website : Checking...\n"
         "More Information at https://revivemii.fr.to/status/"
     )
     
@@ -83,13 +82,11 @@ async def status(ctx):
             return "Server Down"
     
     https_status = await check_website("https://revivemii.fr.to")
-    http_status = await check_website("http://revivemii.fr.to")
-    
+     
     # Update the status message with the results
     await status_msg.edit(
         content=(
-            f"Website (HTTPS): {'Operational' if https_status == 'Operational' else 'Server Down'}\n"
-            f"Website (HTTP): {'Operational' if http_status == 'Operational' else 'Server Down'}\n"
+            f"Website : {'Operational' if https_status == 'Operational' else 'Server Down'}\n"
             "More Information at https://revivemii.fr.to/status/"
         )
     )
