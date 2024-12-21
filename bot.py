@@ -11,6 +11,28 @@ bot = commands.Bot(command_prefix='!', intents=intents, description="Developed b
 @bot.event
 async def on_ready():
     print(f'Bot is ready. Logged in as {bot.user}')
+    # Synchronisieren der Slash Commands
+    await bot.tree.sync()
+
+# Automatically leave if the bot joins a server with an ID other than 1302694379299016764
+@bot.event
+async def on_guild_join(guild):
+    if guild.id != 1302694379299016764:
+        # Try to send a message to a default text channel
+        for channel in guild.text_channels:
+            if channel.permissions_for(guild.me).send_messages:
+                try:
+                    await channel.send(
+                        "This bot can only be in 'ReviveMii Trusted Servers'. "
+                        "Please ensure you're in a trusted server. Leaving this server now..."
+                    )
+                    print(f"Sent leave message to {guild.name} before leaving.")
+                    break  # Once the message is sent, break the loop
+                except discord.Forbidden:
+                    print(f"Bot doesn't have permission to send messages in {channel.name} of {guild.name}")
+        
+        await guild.leave()
+        print(f"Left the server: {guild.name} (ID: {guild.id})")
 
 async def fetch_errors():
     async with aiohttp.ClientSession() as session:
@@ -41,35 +63,40 @@ def search_errors(errors, query):
                     results.append(f'{code}: {description}')
     return results
 
-@bot.command(help="!error : Wii Error Codes. How to use: !error InsertErrorCodeHere")
-async def error(ctx, *, query: str):
+# Slash Command für Fehlercodes
+@bot.tree.command(name="error", description="Fetch Wii Error Codes")
+async def error(interaction: discord.Interaction, query: str):
     errors = await fetch_errors()
     results = search_errors(errors, query)
     if results:
-        await ctx.send('\n'.join(results))
+        await interaction.response.send_message('\n'.join(results))
     else:
-        await ctx.send('No Error Codes found.')
+        await interaction.response.send_message('No Error Codes found.')
 
-@bot.command(help="!about : Shows Information about the bot.")
-async def about(ctx):
-    await ctx.send('This bot was developed by TheErrorExe. Source Code: https://github.com/ReviveMii/discordbot')
+# Slash Command für Bot-Informationen
+@bot.tree.command(name="about", description="Shows Information about the bot.")
+async def about(interaction: discord.Interaction):
+    await interaction.response.send_message('This bot was developed by TheErrorExe. Source Code: https://github.com/ReviveMii/discordbot')
 
-@bot.command(help="!website : Shows the Website of the Developer.")
-async def website(ctx):
-    await ctx.send('ReviveMii: https://revivemii.fr.to\nTheErrorExe-Homepage: https://theerrorexe.github.io\nTools: https://theerrorexe-tools.github.io')
+# Slash Command für die Website des Entwicklers
+@bot.tree.command(name="website", description="Shows the Website of the Developer.")
+async def website(interaction: discord.Interaction):
+    await interaction.response.send_message('ReviveMii: https://revivemii.fr.to\nTheErrorExe-Homepage: https://theerrorexe.github.io\nTools: https://theerrorexe-tools.github.io')
 
-@bot.command(help="!ping : Ping Pong!")
-async def ping(ctx):
-    await ctx.send('Pong!')
+# Slash Command für Ping
+@bot.tree.command(name="ping", description="Ping Pong!")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message('Pong!')
 
-@bot.command(help="!status : Check the operational status of the website.")
-async def status(ctx):
+# Slash Command für den Status der Website
+@bot.tree.command(name="status", description="Check the operational status of the website.")
+async def status(interaction: discord.Interaction):
     # Initial status message
-    status_msg = await ctx.send(
+    status_msg = await interaction.response.send_message(
         "Website : Checking...\n"
         "More Information at https://revivemii.fr.to/status/"
     )
-    
+
     async def check_website(url):
         try:
             async with aiohttp.ClientSession() as session:
@@ -80,9 +107,9 @@ async def status(ctx):
                         return "Server Down"
         except Exception:
             return "Server Down"
-    
+
     https_status = await check_website("https://revivemii.fr.to")
-     
+
     # Update the status message with the results
     await status_msg.edit(
         content=(
@@ -91,8 +118,9 @@ async def status(ctx):
         )
     )
 
-# Read the token from token.txt
+# Bot-Token lesen
 with open('token.txt', 'r') as file:
     token = file.read().strip()
 
+# Bot ausführen
 bot.run(token)
